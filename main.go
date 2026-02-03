@@ -1,58 +1,42 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
-	"os"
-
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
+	"net/http"
+	"github.com/gorilla/mux"
+	"go-crud-psql/internal/config"
+	"go-crud-psql/internal/handlers"
+	"go-crud-psql/internal/repositories"
+	"go-crud-psql/internal/services"
 )
+var port = 8080
 
-func main(){
-	err := godotenv.Load()
+func main() {
+	cfg, err := LoadConfig()
 	if err != nil {
-		log.Fatal("Error loading .env file:", err)
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-
-
-	psqlconn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-	dbHost, dbPort, dbUser, dbPassword, dbName)
-
-	db, err := sql.Open("postgres", psqlconn)
+	db, err := ConnectDB(cfg)
 	if err != nil {
-		log.Fatal("Error connecting to the database: ", err)
+		log.Fatal("Failed to connect to database: ", err)
 	}
 
-	defer db.Close()
-	err = db.Ping()
-	CheckError(err)
-	fmt.Println("Connected to the database successfully!")
+	router := mux.NewRouter()
 
-	rows, err := db.Query(`SELECT "id", "name", "email" FROM "users"`)
-	CheckError(err)
-	for rows.Next(){
-		var id int
-		var name string
-		var email string
+	userRepo := repositories.NewUserRepository(db)
+	userService := services.NewUserService(userRepo)
+	userHandler := handlers.NewUserHandler(userService)
 
-		err = rows.Scan(&id, &name, &email)
-		CheckError(err)
 
-		fmt.Println(id, name, email)
-	}
+	router.HandleFunc("/users", userHandler.CreateUser).Methods("POST")
+	router.HandleFunc("/users/{id}", userHandler.GetUser).Methods("GET")
+	router.HandleFunc("/users/{id}", userHandler.GetUserById).Methods("GET")
+	router.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
+	router.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
 
-}	
+	fmt.Println(`server run at localhost:`, port)
 
-func CheckError(err error)  {
-		if err != nil {
-			panic(err)
-	}
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
 }
