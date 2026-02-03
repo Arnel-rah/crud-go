@@ -1,4 +1,4 @@
-module go/psql
+module go-crud-psql
 
 go 1.25.6
 

@@ -4,23 +4,26 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	"github.com/gorilla/mux"
-	"go-crud-psql/internal/config"
+
+	"go-crud-psql/internal/config" 
 	"go-crud-psql/internal/handlers"
 	"go-crud-psql/internal/repositories"
 	"go-crud-psql/internal/services"
 )
-var port = 8080
+
+const port = 8080
 
 func main() {
-	cfg, err := LoadConfig()
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		log.Fatalf("Échec du chargement de la configuration : %v", err)
 	}
 
-	db, err := ConnectDB(cfg)
+	db, err := config.ConnectDB(cfg) 
 	if err != nil {
-		log.Fatal("Failed to connect to database: ", err)
+		log.Fatalf("Échec de la connexion à la base de données : %v", err)
 	}
 
 	router := mux.NewRouter()
@@ -29,14 +32,12 @@ func main() {
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
+	router.HandleFunc("/users", userHandler.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/users/{id}", userHandler.GetUser).Methods(http.MethodGet) 
+	router.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods(http.MethodPut)
+	router.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods(http.MethodDelete)
 
-	router.HandleFunc("/users", userHandler.CreateUser).Methods("POST")
-	router.HandleFunc("/users/{id}", userHandler.GetUser).Methods("GET")
-	router.HandleFunc("/users/{id}", userHandler.GetUserById).Methods("GET")
-	router.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods("PUT")
-	router.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods("DELETE")
-
-	fmt.Println(`server run at localhost:`, port)
+	fmt.Printf("Serveur démarré sur http://localhost:%d\n", port)
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), router))
 }
