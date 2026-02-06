@@ -1,0 +1,27 @@
+{
+  "sqltools.connections": [
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "DB",
+      "database": "vscode_data_base",
+      "username": "postgres",
+      "password": "Arnel012*/",
+      "connectionTimeout": 30
+    },
+    {
+      "ssh": "Disabled",
+      "previewLimit": 50,
+      "server": "localhost",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "localhost",
+      "database": "crud_db",
+      "username": "postgres",
+      "password": "Arnel012*/"
+    }
+  ]
+}
