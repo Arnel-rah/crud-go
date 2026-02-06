@@ -33,6 +33,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(userService)
 
 	router.HandleFunc("/users", userHandler.CreateUser).Methods(http.MethodPost)
+	router.HandleFunc("/users", userHandler.GetAllUsers).Methods(http.MethodGet)
 	router.HandleFunc("/users/{id}", userHandler.GetUser).Methods(http.MethodGet) 
 	router.HandleFunc("/users/{id}", userHandler.UpdateUser).Methods(http.MethodPut)
 	router.HandleFunc("/users/{id}", userHandler.DeleteUser).Methods(http.MethodDelete)
